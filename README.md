@@ -14,3 +14,5 @@ J'utilise cette classe pour donner un moyen facile à un développeur tiers d'im
 ## Comment ?
 
 A utiliser avec modération Je ne comble pas tout les défauts de flexibilité avec cette classe. Je l'utilise pour permettre des impacts légers, des finitions.  A l'intérieur des mes listeners, j'évite d'ajouter trop de complexité ou d'appels extérieurs. Attention au code spaghetti!
+
+TODO : exemples
