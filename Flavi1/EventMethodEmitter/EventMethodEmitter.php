@@ -1,18 +1,22 @@
 <?php
 namespace Flavi1\EventMethodEmitter;
+include('ListenerProvider.php');	// todo : replace with autoload
+use Flavi1\EventMethodEmitter\ListenerProvider;
 include('EventMethodDispatcher.php');	// todo : replace with autoload
 use Flavi1\EventMethodEmitter\EventMethodDispatcher;
 
 class EventMethodEmitter
 {
 	static $initialized = false;
-	static $EventMethodDispatcher = null;
+	static $eventMethodDispatcher = null;
+	static $listenerProvider = null;
 	
 	public static function __init()
 	{
 		if(static::$initialized)
 			return;
-		static::$EventMethodDispatcher = new EventMethodDispatcher(get_called_class());
+		static::$listenerProvider = new ListenerProvider(get_called_class());
+		static::$eventMethodDispatcher = new EventMethodDispatcher(static::$listenerProvider);
 		static::$initialized = true;
 	}
 	
@@ -44,7 +48,7 @@ echo 'ERR : '.$m;
 		$callMethod = false;
 		foreach([$before, $both, $after] as $_m)
 		{
-			$isPrivate = ($_m) ? ( new ReflectionMethod($_this, $_m[1]) )->isPrivate() : false;
+			$isPrivate = ($_m) ? ( new \ReflectionMethod($_this, $_m[1]) )->isPrivate() : false;
 			if($_m and !$isPrivate)
 				$callMethod = $_m;
 		}
@@ -57,7 +61,7 @@ echo 'ERR : '.$m;
 		if($before or $both)
 			static::__methodEventEmitter('before', $_this, $m, $args, $response);
 		
-		echo '(('.$callMethod[1].'))'."\n";
+//echo '(('.$callMethod[1].'))'."\n";
 		$response = call_user_func_array($callMethod, $args);
 		
         if($after or $both)
@@ -69,7 +73,7 @@ echo 'ERR : '.$m;
 	protected static function __methodEventEmitter($evType, $target, $method, &$args, &$response) {
 		if(!static::$initialized)
 			static::__init();
-echo "\n$evType (ARGS : " . implode(', ', $args). ")\n";
+//echo "\n$evType (ARGS : " . implode(', ', $args). ")\n";
 		$ev = (object) [
 			'type' => $evType,
 			'method' => $method,
@@ -77,13 +81,13 @@ echo "\n$evType (ARGS : " . implode(', ', $args). ")\n";
 			'arguments' => &$args,
 			'response' => &$response,
 		];
-		static::$EventMethodDispatcher->dispatch($ev);
+		static::$eventMethodDispatcher->dispatch($ev);
 	}
 	
 	public static function addBeforeListener($method, $listener, $order = 0, $evType = 'before') {
 		if(!static::$initialized)
 			static::__init();
-		static::$EventMethodDispatcher->addMethodListener($evType, $method, $listener, $order);
+		static::$listenerProvider->addMethodListener($evType, $method, $listener, $order);
 	}
 	
 	public static function addAfterListener($method, $listener, $order = 0) {
